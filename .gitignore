@@ -1,0 +1,10 @@
+/node_modules
+/dist
+/tmp
+/out-tsc
+.DS_STORE
+Thumbs.db
+src.pem
+src.crx
+src/lahsce-1.65.zip
+*.zip
