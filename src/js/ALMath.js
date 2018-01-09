@@ -95,7 +95,9 @@ function mathClickRegister() {
 			$('.mathWindow').css('flex-direction', 'column');
 			$('.mathResult').select();
 			$('.mathResult').bind('copy', function() {
-				dismissALPop();
+				setTimeout(function() {
+					dismissALPop();
+				}, 100)
 			});
 		})
 	});
