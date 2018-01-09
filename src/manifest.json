@@ -1,8 +1,8 @@
 {
   "name": "MathAL",
 	"short_name": "AL+",
-  "version": "1.00",
-  "description": "Adds the ability to write latex math equations as answers for Actively Learn questions.",
+  "version": "1.10",
+  "description": "Adds the ability to write LaTeX math equations as answers for Actively Learn questions.",
 	"content_scripts": [
 		{
 			"matches": ["https://read.activelylearn.com/*"],

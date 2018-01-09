@@ -79,6 +79,12 @@ function mathClickRegister() {
 			if(e.currentTarget == e.target)
 				dismissALPop();
 		});
+		$(document).on('keyup.mathALListener', function(e) {
+		     if (e.keyCode == 27) {
+		        dismissALPop();
+		    }
+		});
+		
 		$('.goBtn').click(function() {
 			//process!
 			var toText = field.text();
@@ -88,11 +94,15 @@ function mathClickRegister() {
 			$('.mathResult').val("~~"+toLatex+"~\r\n"+toText+"\r\n(MathAL Chrome Extension)~");
 			$('.mathWindow').css('flex-direction', 'column');
 			$('.mathResult').select();
+			$('.mathResult').bind('copy', function() {
+				dismissALPop();
+			});
 		})
 	});
 }
 function dismissALPop() {
 	$('.mathALPopup').remove();
+	$(document).unbind('keyup.mathALListener');
 }
 
 function convertMathIfPresent() {
@@ -101,12 +111,14 @@ function convertMathIfPresent() {
 		if($(ele).text().indexOf('~~') == -1)
 			return true;
 		//find our text blob
-		var mainLatex = $(':contains(~~)', ele);
-		var plaintext = mainLatex.next();
-		var ad = plaintext.next();
-		plaintext.remove();
-		ad.remove();
-		mainLatex.text(mainLatex.text().replace("~~", "").replace("~",""));
-		MQ.StaticMath(mainLatex.get(0));
+		$(':contains(~~)', ele).each(function(indx, mainLatex) {
+			mainLatex = $(mainLatex);
+			var plaintext = mainLatex.next();
+			var ad = plaintext.next();
+			plaintext.remove();
+			ad.remove();
+			mainLatex.text(mainLatex.text().replace("~~", "").replace("~",""));
+			MQ.StaticMath(mainLatex.get(0));
+		})
 	})
 }
