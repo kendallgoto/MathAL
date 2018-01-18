@@ -14,22 +14,47 @@ var observeDOM = (function(){
 var MQ = MathQuill.getInterface(2);
 var lastFocusArea;
 $(function() {
-	//var loadObserveOnce = 0;
 	captureTextWindows();
 	var refresh = setInterval(function() {
 		console.log("checking elements");
-			// observeDOM(document.getElementsByClassName('textSectionContainer')[0], function() {
-			// 	console.log("mutate detected");
-			// 	captureTextWindows();
-			// });
 		captureTextWindows();
 		convertMathIfPresent();
+		cleanHanging();
 	}, 1500);
 });
+function cleanHanging() {
+	//find our hangers
+	$('*:contains("!{")', '.questionTagAnswer[style="display: block;"]').each(function(indx, ele) {
+		$(ele).contents().filter(function(){
+			if(this.nodeType == 3) return true;
+		}).each(function(indx2, ele2) {
+			console.log("errdet");
+			if(!$(ele2).parent().is('sub')) {
+				console.log('aa');
+				console.log(ele2);
+				while($(ele2).text().indexOf("!{") >= 0) {
+					var trueRend = $(ele2).text();
+					var finRend = trueRend.substring(0, trueRend.indexOf("!{")) + trueRend.substring(trueRend.indexOf("}!")+2);
+					console.log(finRend);
+					var newHTML = $(ele2).parent().html();
+					newHTML = newHTML.substring(newHTML.indexOf("<", 5));
+					$(ele2).parent().html(finRend + newHTML)
+				}
+			}
+		});
+	});
+}
 function captureTextWindows() {
 	$('.questionTagAnswer[style="display: block;"] > div[contenteditable=true]').off('focus').focus(function() {
 		console.log("Focused!");
 		insertFloatingMath(this);
+		if($(this).data('observe')) {
+			$(this).data('observe').disconnect();
+		}
+		$(this).data('observe', observeDOM(this, function() {
+			//make sure we good
+			setTimeout(cleanHanging, 50)
+		}));
 	}).blur(function() {
 		console.log("Unfocused!");
 		removeFloatingMath(this);
@@ -93,13 +118,13 @@ function mathClickRegister() {
 		
 		$('.goBtn').click(function() {
 			//process!
-			var toText = field.text();
-			var toLatex = field.latex();
+			var toText = field.text().replace(/\\s\*i\*n/g, 'sin').replace(/\\c\*o\*s/g, 'cos').replace(/\\t\*a\*n/g, 'tan').replace(/\\c\*o\*t/g, 'cot').replace(/\\s\*e\*c/g, 'sec').replace(/\\c\*s\*c/g, 'csc');
+			var toLatex = field.latex()
 			//inject html ...
 			
 			//$('.mathWindow').children().remove();
 			//$('<textarea class="mathResult"></textarea><div class="mathDesc">Ctrl/Cmd+C!</div>').appendTo('.mathWindow');
-			var html = "<p>|~ "+toText+" ~|<span><sub><sub><sub><sub><sub><sub><sub><sub><sub><sub><sub><sub>"+toLatex+"</sub></sub></sub></sub></sub></sub></sub></sub></sub></sub></sub></sub></span></p>";
+			var html = "<p>|~ "+toText+" ~|<span><sub><sub><sub><sub><sub><sub><sub><sub><sub><sub><sub><sub>!{"+toLatex+"}!</sub></sub></sub></sub></sub></sub></sub></sub></sub></sub></sub></sub></span></p>";
 			if(lastFocusArea[0] && lastFocusArea[0].nodeType == 3) {
 				lastFocusArea = $(lastFocusArea).parent();
 			}
@@ -139,10 +164,11 @@ function convertMathIfPresent() {
 				saveText = "";
 			}
 			$(parentCont).text(saveText);
-			var latexInsert = $('<p>'+realLatex+'</p>');
+			var latexInsert = $('<p>'+realLatex.replace("!{", "").replace("}!", "")+'</p>');
 			$(parentCont).append(latexInsert);
 			MQ.StaticMath($(latexInsert).get(0));
 		})
+		
 		if($(ele).text().indexOf('~~') == -1)
 			return true;
 		//legacy
